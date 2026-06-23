@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ประวัติการวิ่งงาน — SSB (DEMO)</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#2D5A27;--g2:#4A7C3F;--g3:#D6E8D0;--g4:#F0F7EE;
+  --b1:#7B4F2E;--b3:#F5E6D0;
+  --s1:#1E40AF;--s3:#DBEAFE;
+  --done:#16A34A;--done-l:#DCFCE7;
+  --pending:#9CA3AF;--pending-l:#F3F4F6;
+  --red:#DC2626;--red-l:#FEE2E2;
+  --gold:#B45309;--gold-l:#FEF3C7;
+  --text:#1F2937;--text-m:#6B7280;--text-l:#9CA3AF;
+  --border:rgba(0,0,0,0.08);--white:#FFFFFF;--bg:#F5F5F0;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:40px}
+.hdr{background:linear-gradient(135deg,var(--g1),var(--g2));padding:16px;position:sticky;top:0;z-index:20}
+.hdr-inner{display:flex;align-items:center;gap:10px}
+.hdr-icon{font-size:26px}.hdr-title{font-size:16px;font-weight:700;color:#fff}
+.hdr-sub{font-size:11px;color:var(--g3);margin-top:2px}
+
+.drv-card{background:var(--white);margin:12px;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.drv-avatar{width:40px;height:40px;border-radius:50%;background:var(--g3);display:flex;align-items:center;justify-content:center;font-size:20px}
+.drv-name{font-size:14px;font-weight:600}.drv-plate{font-size:12px;color:var(--text-m);margin-top:2px}
+
+.range{display:flex;gap:8px;overflow-x:auto;padding:0 12px 4px;margin-bottom:4px;-webkit-overflow-scrolling:touch}
+.range::-webkit-scrollbar{display:none}
+.rchip{flex-shrink:0;padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;font-family:'Sarabun',sans-serif;background:var(--white);color:var(--text-m);font-weight:600;cursor:pointer}
+.rchip.on{background:var(--g2);border-color:var(--g2);color:#fff}
+
+.sum-wrap{margin:8px 12px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sum-card{background:var(--white);border-radius:12px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.sum-card.span2{grid-column:1/-1;background:var(--g1)}
+.sum-lbl{font-size:10px;color:var(--text-l);font-weight:600}
+.sum-card.span2 .sum-lbl{color:var(--g3)}
+.sum-val{font-size:18px;font-weight:700;color:var(--g1);margin-top:2px}
+.sum-card.span2 .sum-val{color:#fff;font-size:22px}
+.sum-unit{font-size:11px;font-weight:500;color:var(--text-m)}
+.sum-card.span2 .sum-unit{color:var(--g3)}
+
+.list-title{font-size:12px;color:var(--text-m);margin:16px 14px 8px;display:flex;justify-content:space-between;align-items:center}
+.sort-btn{font-size:12px;color:var(--g2);font-weight:600;cursor:pointer;background:none;border:none;font-family:'Sarabun',sans-serif}
+
+.trip{background:var(--white);margin:0 12px 10px;border-radius:14px;padding:12px 14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.trip-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.trip-date{font-size:12px;color:var(--text-m);font-weight:600}
+.trip-type{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.tt-palm{background:var(--g3);color:var(--g1)}.tt-ramp{background:var(--b3);color:var(--b1)}.tt-other{background:var(--s3);color:var(--s1)}
+.trip-ord{font-size:14px;font-weight:700;color:var(--g1)}
+.trip-dest{font-size:12px;color:var(--text-m);margin:2px 0 10px}
+.trip-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;border-top:1px dashed var(--border);padding-top:10px}
+.tg-item .tg-lbl{font-size:10px;color:var(--text-l);display:block}
+.tg-item .tg-val{font-size:14px;font-weight:600;color:var(--text)}
+.tg-item .tg-val .u{font-size:11px;font-weight:500;color:var(--text-m)}
+.tg-wage .tg-val{color:var(--gold)}
+.tg-eff .tg-val{color:var(--s1)}
+.empty{text-align:center;padding:40px 24px;color:var(--text-l);font-size:13px}
+
+.note{margin:14px 12px 0;background:var(--gold-l);border:1px solid #FDE68A;border-radius:10px;padding:10px 12px;font-size:11px;color:var(--gold);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-icon">📊</div>
+    <div><div class="hdr-title">ประวัติการวิ่งงาน</div><div class="hdr-sub">SSB Smart Supply · DEMO</div></div>
+  </div>
+</div>
+
+<div class="drv-card">
+  <div class="drv-avatar">🚛</div>
+  <div><div class="drv-name">คุณน้อง</div><div class="drv-plate">85-6589</div></div>
+</div>
+
+<div class="range" id="range"></div>
+
+<div class="sum-wrap" id="summary"></div>
+
+<div class="list-title">
+  <span id="list-count">รายการงาน</span>
+  <button class="sort-btn" id="sort-btn" onclick="toggleSort()">⇅ เก่า → ใหม่</button>
+</div>
+<div id="trip-list"></div>
+
+<div class="note">
+  ⚠️ <b>DEMO — ข้อมูลจำลอง</b><br>
+  • <b>ค่าแรงที่ได้รับ</b> ยังไม่มีในชีต ต้องกำหนดสูตร (ต่อเที่ยว / ต่อกม. / ต่อตัน) — ตอนนี้ใส่เลขจำลองไว้<br>
+  • <b>อัตราสิ้นเปลือง</b> = ระยะทาง ÷ ลิตรรวม (คำนวณอัตโนมัติ)<br>
+  • <b>เฉลี่ย กม./วัน (จ–ศ)</b> = ระยะทางวันธรรมดา ÷ จำนวนวันทำงาน (ไม่นับ ส.–อา. ทั้งระยะทางและจำนวนวัน)<br>
+  • ของจริงจะดึงผ่าน action ใหม่ เช่น <b>getDriverHistory</b> จากชีต STATUS + LOG_Weight
+</div>
+
+<script>
+// ── ข้อมูลจำลอง (โครงสร้างเลียนแบบชีต STATUS + LOG_Weight) ──
+const TRIPS = [
+  {date:'2026-06-02', ord:'ORD-260602-118', dest:'ปูเป้ ปาล์มพันไร่', type:'ปาล์ม', ramp:true,  dist:262, fuelL:78,  fuelBaht:2371, netKg:29290, wage:1850, status:'เสร็จงาน'},
+  {date:'2026-06-05', ord:'ORD-260605-204', dest:'สวนทองดี',          type:'ปาล์ม', ramp:false, dist:148, fuelL:44,  fuelBaht:1338, netKg:18600, wage:980,  status:'เสร็จงาน'},
+  {date:'2026-06-09', ord:'ORD-260609-377', dest:'ลานเทฝันพันไร่',     type:'อื่นๆ', ramp:true,  dist:201, fuelL:60,  fuelBaht:1822, netKg:0,     wage:1400, status:'เสร็จงาน'},
+  {date:'2026-06-12', ord:'ORD-260612-455', dest:'สวนรุ่งเรือง',       type:'ปาล์ม', ramp:false, dist:176, fuelL:52,  fuelBaht:1579, netKg:21300, wage:1120, status:'เสร็จงาน'},
+  {date:'2026-06-15', ord:'ORD-260615-492', dest:'วรเมธ จินตะ',        type:'อื่นๆ', ramp:false, dist:95,  fuelL:30,  fuelBaht:912,  netKg:0,     wage:700,  status:'เสร็จงาน'},
+  {date:'2026-06-17', ord:'ORD-260617-871', dest:'ปูเป้ ปาล์มพันไร่',  type:'ปาล์ม', ramp:true,  dist:268, fuelL:80,  fuelBaht:2432, netKg:30100, wage:1900, status:'เสร็จงาน'},
+  {date:'2026-06-18', ord:'ORD-260618-872', dest:'ปูเป้ ปาล์มพันไร่',  type:'ปาล์ม', ramp:true,  dist:255, fuelL:76,  fuelBaht:2310, netKg:29290, wage:1850, status:'เสร็จงาน'},
+];
+
+const TODAY = new Date('2026-06-18');
+let sortNewFirst = false;
+let curRange = 'all';
+
+const RANGES = [
+  {key:'7d',    label:'7 วันล่าสุด', days:7},
+  {key:'month', label:'เดือนนี้',    month:true},
+  {key:'30d',   label:'30 วัน',      days:30},
+  {key:'all',   label:'ทั้งหมด',     all:true},
+];
+
+function typeBadge(t){
+  if(t==='ปาล์ม'&&true===t.ramp){} // placeholder
+  return '';
+}
+function badgeOf(trip){
+  if(trip.type==='ปาล์ม'&&trip.ramp) return {cls:'tt-ramp', txt:'🏭 ปาล์ม+ลาน'};
+  if(trip.type==='ปาล์ม')            return {cls:'tt-palm', txt:'🌴 ปาล์ม'};
+  if(trip.ramp)                      return {cls:'tt-ramp', txt:'🏭 อื่นๆ+ลาน'};
+  return {cls:'tt-other', txt:'📦 งานอื่นๆ'};
+}
+function fmtDate(s){
+  const d=new Date(s);
+  return d.toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'2-digit'});
+}
+function inRange(trip){
+  const d=new Date(trip.date);
+  const r=RANGES.find(x=>x.key===curRange);
+  if(r.all) return true;
+  if(r.month) return d.getMonth()===TODAY.getMonth()&&d.getFullYear()===TODAY.getFullYear();
+  const diff=(TODAY-d)/(1000*60*60*24);
+  return diff<=r.days;
+}
+
+function renderRange(){
+  document.getElementById('range').innerHTML = RANGES.map(r=>
+    `<button class="rchip ${r.key===curRange?'on':''}" onclick="setRange('${r.key}')">${r.label}</button>`
+  ).join('');
+}
+function setRange(k){ curRange=k; renderRange(); renderAll(); }
+function toggleSort(){
+  sortNewFirst=!sortNewFirst;
+  document.getElementById('sort-btn').textContent = sortNewFirst?'⇅ ใหม่ → เก่า':'⇅ เก่า → ใหม่';
+  renderAll();
+}
+
+function renderAll(){
+  let rows = TRIPS.filter(inRange);
+  rows.sort((a,b)=> sortNewFirst
+    ? new Date(b.date)-new Date(a.date)
+    : new Date(a.date)-new Date(b.date));
+
+  // สรุป
+  const n=rows.length;
+  const dist=rows.reduce((s,t)=>s+t.dist,0);
+  const fuel=rows.reduce((s,t)=>s+t.fuelL,0);
+  const wage=rows.reduce((s,t)=>s+t.wage,0);
+  const eff= fuel>0 ? (dist/fuel) : 0;
+
+  // เฉลี่ย กม./วัน — เฉพาะวันธรรมดา จ–ศ (getDay() 0=อา. 6=ส.)
+  const wkTrips = rows.filter(t=>{const d=new Date(t.date).getDay(); return d!==0 && d!==6;});
+  const wkDist  = wkTrips.reduce((s,t)=>s+t.dist,0);
+  const wkDays  = new Set(wkTrips.map(t=>t.date)).size;          // วันทำงานที่ไม่ซ้ำ
+  const kmPerDay = wkDays>0 ? (wkDist/wkDays) : 0;
+
+  document.getElementById('summary').innerHTML=`
+    <div class="sum-card span2">
+      <div class="sum-lbl">💰 ค่าแรงรวมในช่วงนี้</div>
+      <div class="sum-val">${wage.toLocaleString()} <span class="sum-unit">บาท · ${n} เที่ยว</span></div>
+    </div>
+    <div class="sum-card"><div class="sum-lbl">🚚 จำนวนเที่ยว</div><div class="sum-val">${n} <span class="sum-unit">เที่ยว</span></div></div>
+    <div class="sum-card"><div class="sum-lbl">🛣️ ระยะทางรวม</div><div class="sum-val">${dist.toLocaleString()} <span class="sum-unit">กม.</span></div></div>
+    <div class="sum-card"><div class="sum-lbl">📅 เฉลี่ย กม./วัน (จ–ศ)</div><div class="sum-val">${Math.round(kmPerDay).toLocaleString()} <span class="sum-unit">กม./วัน · ${wkDays} วัน</span></div></div>
+    <div class="sum-card"><div class="sum-lbl">⛽ น้ำมันรวม</div><div class="sum-val">${fuel.toLocaleString()} <span class="sum-unit">ลิตร</span></div></div>
+    <div class="sum-card"><div class="sum-lbl">📈 เฉลี่ยสิ้นเปลือง</div><div class="sum-val">${eff.toFixed(2)} <span class="sum-unit">กม./ลิตร</span></div></div>
+    <div class="sum-card"><div class="sum-lbl">⚖️ ปาล์มรวม</div><div class="sum-val">${(rows.reduce((s,t)=>s+t.netKg,0)/1000).toFixed(1)} <span class="sum-unit">ตัน</span></div></div>
+  `;
+
+  document.getElementById('list-count').textContent = `รายการงาน · ${n} งาน`;
+
+  const list=document.getElementById('trip-list');
+  if(n===0){ list.innerHTML=`<div class="empty">ไม่มีงานในช่วงเวลานี้</div>`; return; }
+
+  list.innerHTML = rows.map(t=>{
+    const b=badgeOf(t);
+    const eff = t.fuelL>0 ? (t.dist/t.fuelL).toFixed(2) : '—';
+    return `
+    <div class="trip">
+      <div class="trip-top">
+        <span class="trip-date">📅 ${fmtDate(t.date)}</span>
+        <span class="trip-type ${b.cls}">${b.txt}</span>
+      </div>
+      <div class="trip-ord">${t.ord}</div>
+      <div class="trip-dest">📍 ${t.dest}</div>
+      <div class="trip-grid">
+        <div class="tg-item"><span class="tg-lbl">ระยะทาง</span><span class="tg-val">${t.dist.toLocaleString()} <span class="u">กม.</span></span></div>
+        <div class="tg-item"><span class="tg-lbl">เติมน้ำมัน</span><span class="tg-val">${t.fuelL} <span class="u">ลิตร · ${t.fuelBaht.toLocaleString()}฿</span></span></div>
+        <div class="tg-item tg-eff"><span class="tg-lbl">อัตราสิ้นเปลือง</span><span class="tg-val">${eff} <span class="u">กม./ลิตร</span></span></div>
+        <div class="tg-item tg-wage"><span class="tg-lbl">ค่าแรงที่ได้รับ</span><span class="tg-val">${t.wage.toLocaleString()} <span class="u">บาท</span></span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+renderRange();
+renderAll();
+</script>
+</body>
+</html>
