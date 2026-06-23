@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>ประวัติการวิ่งงาน — SSB (DEMO)</title>
+<title>ประวัติการวิ่งงาน — SSB</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -68,13 +69,13 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 <div class="hdr">
   <div class="hdr-inner">
     <div class="hdr-icon">📊</div>
-    <div><div class="hdr-title">ประวัติการวิ่งงาน</div><div class="hdr-sub">SSB Smart Supply · DEMO</div></div>
+    <div><div class="hdr-title">ประวัติการวิ่งงาน</div><div class="hdr-sub">SSB Smart Supply</div></div>
   </div>
 </div>
 
 <div class="drv-card">
   <div class="drv-avatar">🚛</div>
-  <div><div class="drv-name">คุณน้อง</div><div class="drv-plate">85-6589</div></div>
+  <div><div class="drv-name" id="drv-name">กำลังโหลด...</div><div class="drv-plate" id="drv-plate">—</div></div>
 </div>
 
 <div class="range" id="range"></div>
@@ -88,26 +89,20 @@ body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);min
 <div id="trip-list"></div>
 
 <div class="note">
-  ⚠️ <b>DEMO — ข้อมูลจำลอง</b><br>
-  • <b>ค่าแรงที่ได้รับ</b> ยังไม่มีในชีต ต้องกำหนดสูตร (ต่อเที่ยว / ต่อกม. / ต่อตัน) — ตอนนี้ใส่เลขจำลองไว้<br>
-  • <b>อัตราสิ้นเปลือง</b> = ระยะทาง ÷ ลิตรรวม (คำนวณอัตโนมัติ)<br>
-  • <b>เฉลี่ย กม./วัน (จ–ศ)</b> = ระยะทางวันธรรมดา ÷ จำนวนวันทำงาน (ไม่นับ ส.–อา. ทั้งระยะทางและจำนวนวัน)<br>
-  • ของจริงจะดึงผ่าน action ใหม่ เช่น <b>getDriverHistory</b> จากชีต STATUS + LOG_Weight
+  • <b>ค่าแรงที่ได้รับ</b> ยังไม่มีในชีต — แสดง <b>“รอคำนวณ”</b> ไว้ก่อน จะคำนวณ+freeze ตอนเสร็จงานในเฟสถัดไป<br>
+  • <b>ระยะทาง</b> = เลขดุมล้อปลายทาง − เลขดุมล้อเริ่ม (โชว์ตามจริง)<br>
+  • <b>อัตราสิ้นเปลือง</b> = ระยะทาง ÷ ลิตรรวม<br>
+  • <b>เฉลี่ย กม./วัน (จ–ศ)</b> = ระยะทางวันธรรมดา ÷ จำนวนวันทำงาน (ไม่นับ ส.–อา.)
 </div>
 
 <script>
-// ── ข้อมูลจำลอง (โครงสร้างเลียนแบบชีต STATUS + LOG_Weight) ──
-const TRIPS = [
-  {date:'2026-06-02', ord:'ORD-260602-118', dest:'ปูเป้ ปาล์มพันไร่', type:'ปาล์ม', ramp:true,  dist:262, fuelL:78,  fuelBaht:2371, netKg:29290, wage:1850, status:'เสร็จงาน'},
-  {date:'2026-06-05', ord:'ORD-260605-204', dest:'สวนทองดี',          type:'ปาล์ม', ramp:false, dist:148, fuelL:44,  fuelBaht:1338, netKg:18600, wage:980,  status:'เสร็จงาน'},
-  {date:'2026-06-09', ord:'ORD-260609-377', dest:'ลานเทฝันพันไร่',     type:'อื่นๆ', ramp:true,  dist:201, fuelL:60,  fuelBaht:1822, netKg:0,     wage:1400, status:'เสร็จงาน'},
-  {date:'2026-06-12', ord:'ORD-260612-455', dest:'สวนรุ่งเรือง',       type:'ปาล์ม', ramp:false, dist:176, fuelL:52,  fuelBaht:1579, netKg:21300, wage:1120, status:'เสร็จงาน'},
-  {date:'2026-06-15', ord:'ORD-260615-492', dest:'วรเมธ จินตะ',        type:'อื่นๆ', ramp:false, dist:95,  fuelL:30,  fuelBaht:912,  netKg:0,     wage:700,  status:'เสร็จงาน'},
-  {date:'2026-06-17', ord:'ORD-260617-871', dest:'ปูเป้ ปาล์มพันไร่',  type:'ปาล์ม', ramp:true,  dist:268, fuelL:80,  fuelBaht:2432, netKg:30100, wage:1900, status:'เสร็จงาน'},
-  {date:'2026-06-18', ord:'ORD-260618-872', dest:'ปูเป้ ปาล์มพันไร่',  type:'ปาล์ม', ramp:true,  dist:255, fuelL:76,  fuelBaht:2310, netKg:29290, wage:1850, status:'เสร็จงาน'},
-];
+// ── เชื่อมต่อ GAS + LIFF ──
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbw4UvKuRrAQ_3Ldm8U0VJqfjfBQUSYaTEdrxkdXUVN98G68XseCquhDeXfMgU8cVYaY/exec';
+const LIFF_ID = '2010274217-V4fRwgHt';   // Driver_History
 
-const TODAY = new Date('2026-06-18');
+let TRIPS = [];          // ← จะเติมจากชีตจริง
+
+const TODAY = new Date(); // ← ใช้วันนี้จริง
 let sortNewFirst = false;
 let curRange = 'all';
 
@@ -163,7 +158,10 @@ function renderAll(){
   const n=rows.length;
   const dist=rows.reduce((s,t)=>s+t.dist,0);
   const fuel=rows.reduce((s,t)=>s+t.fuelL,0);
-  const wage=rows.reduce((s,t)=>s+t.wage,0);
+  // ค่าแรงยังไม่มี → รวมเฉพาะที่มีค่า (null = ข้าม)
+  const wageVals = rows.filter(t=>t.wage!=null);
+  const wage = wageVals.reduce((s,t)=>s+t.wage,0);
+  const wageReady = wageVals.length>0;   // มีค่าแรงจริงไหม
   const eff= fuel>0 ? (dist/fuel) : 0;
 
   // เฉลี่ย กม./วัน — เฉพาะวันธรรมดา จ–ศ (getDay() 0=อา. 6=ส.)
@@ -172,10 +170,14 @@ function renderAll(){
   const wkDays  = new Set(wkTrips.map(t=>t.date)).size;          // วันทำงานที่ไม่ซ้ำ
   const kmPerDay = wkDays>0 ? (wkDist/wkDays) : 0;
 
+  const wageMain = wageReady
+    ? `${wage.toLocaleString()} <span class="sum-unit">บาท · ${n} เที่ยว</span>`
+    : `รอคำนวณ <span class="sum-unit">· ${n} เที่ยว</span>`;
+
   document.getElementById('summary').innerHTML=`
     <div class="sum-card span2">
       <div class="sum-lbl">💰 ค่าแรงรวมในช่วงนี้</div>
-      <div class="sum-val">${wage.toLocaleString()} <span class="sum-unit">บาท · ${n} เที่ยว</span></div>
+      <div class="sum-val">${wageMain}</div>
     </div>
     <div class="sum-card"><div class="sum-lbl">🚚 จำนวนเที่ยว</div><div class="sum-val">${n} <span class="sum-unit">เที่ยว</span></div></div>
     <div class="sum-card"><div class="sum-lbl">🛣️ ระยะทางรวม</div><div class="sum-val">${dist.toLocaleString()} <span class="sum-unit">กม.</span></div></div>
@@ -203,16 +205,58 @@ function renderAll(){
       <div class="trip-dest">📍 ${t.dest}</div>
       <div class="trip-grid">
         <div class="tg-item"><span class="tg-lbl">ระยะทาง</span><span class="tg-val">${t.dist.toLocaleString()} <span class="u">กม.</span></span></div>
-        <div class="tg-item"><span class="tg-lbl">เติมน้ำมัน</span><span class="tg-val">${t.fuelL} <span class="u">ลิตร · ${t.fuelBaht.toLocaleString()}฿</span></span></div>
+        <div class="tg-item"><span class="tg-lbl">เติมน้ำมัน</span><span class="tg-val">${t.fuelL.toLocaleString()} <span class="u">ลิตร</span></span></div>
         <div class="tg-item tg-eff"><span class="tg-lbl">อัตราสิ้นเปลือง</span><span class="tg-val">${eff} <span class="u">กม./ลิตร</span></span></div>
-        <div class="tg-item tg-wage"><span class="tg-lbl">ค่าแรงที่ได้รับ</span><span class="tg-val">${t.wage.toLocaleString()} <span class="u">บาท</span></span></div>
+        <div class="tg-item tg-wage"><span class="tg-lbl">ค่าแรงที่ได้รับ</span><span class="tg-val">${wageDisplay(t)}</span></div>
       </div>
     </div>`;
   }).join('');
 }
 
-renderRange();
-renderAll();
+// ── แสดงค่าแรง: ถ้ายังไม่มี → "รอคำนวณ" สีเทา ──
+function wageDisplay(t){
+  if(t.wage==null){
+    return `<span style="color:var(--text-l);font-weight:600">⏳ รอคำนวณ</span>`;
+  }
+  return `${t.wage.toLocaleString()} <span class="u">บาท</span>`;
+}
+
+// ── ดึงข้อมูลจริงจาก GAS ──
+async function loadHistory(userId){
+  try{
+    const res = await fetch(`${GAS_URL}?action=getDriverHistory&userId=${encodeURIComponent(userId)}`);
+    const data = await res.json();
+    if(data.status!=='ok'){ throw new Error(data.error||'โหลดไม่สำเร็จ'); }
+
+    document.getElementById('drv-name').textContent  = data.name  || '—';
+    document.getElementById('drv-plate').textContent = data.plate || '—';
+
+    TRIPS = data.trips || [];
+    renderRange();
+    renderAll();
+  }catch(e){
+    document.getElementById('drv-name').textContent = '⚠️ โหลดไม่สำเร็จ';
+    document.getElementById('trip-list').innerHTML =
+      `<div class="empty">เกิดข้อผิดพลาด: ${e.message}<br>ลองปิด-เปิดหน้าใหม่อีกครั้ง</div>`;
+  }
+}
+
+// ── เริ่มต้น: LIFF login → เอา userId ไปดึงประวัติ ──
+async function init(){
+  renderRange();   // โชว์ชิปช่วงเวลาก่อน (ระหว่างรอ)
+  try{
+    await liff.init({liffId:LIFF_ID});
+    if(!liff.isLoggedIn()){ liff.login(); return; }
+    const profile = await liff.getProfile();
+    await loadHistory(profile.userId);
+  }catch(e){
+    document.getElementById('drv-name').textContent = '⚠️ LIFF ผิดพลาด';
+    document.getElementById('trip-list').innerHTML =
+      `<div class="empty">เปิดหน้านี้ผ่าน LINE เท่านั้น<br>(${e.message})</div>`;
+  }
+}
+
+init();
 </script>
 </body>
 </html>
